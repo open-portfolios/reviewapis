@@ -1,0 +1,6 @@
+{
+    "protobuf.clangFormat.enabled": true,
+    "protobuf.includes": [
+        "${workspaceFolder}/thirdparty",
+    ]
+}
