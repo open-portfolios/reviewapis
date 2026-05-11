@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+  GO_CLI_TOOLS:
+    map:
+      wire: github.com/google/wire/cmd/wire
+      kratos: github.com/go-kratos/kratos/cmd/kratos/v2
+      protoc-gen-go: google.golang.org/protobuf/cmd/protoc-gen-go
+      protoc-gen-go-grpc: google.golang.org/grpc/cmd/protoc-gen-go-grpc
+      protoc-gen-go-http: github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2
+      protoc-gen-openapi: github.com/google/gnostic/cmd/protoc-gen-openapi
+      protoc-gen-validate: github.com/envoyproxy/protoc-gen-validate
+      protoc-gen-go-errors: github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2
+  GO_API_GENERATION_ARGS:
+    - --proto_path=.
+    - --proto_path=./thirdparty
+    - --go_out=paths=source_relative:./gen/go
+    - --go-http_out=paths=source_relative:./gen/go
+    - --go-grpc_out=paths=source_relative:./gen/go
+    - --validate_out=paths=source_relative,lang=go:./gen/go
+    - --go-errors_out=paths=source_relative:./gen/go
+  API_PROTO_FILES:
+    sh: |
+      shopt -s globstar
+      for dir in */; do
+        dir=${dir//\\//}
+        dir=${dir%%/}
+        if [ "$dir" = "thirdparty" ] || [ "$dir" = "gen" ]; then
+          continue
+        fi
+        for p in $dir/**/*.proto; do
+          p=${p//\\//}
+          echo -n "$p "
+        done
+      done
+
+tasks:
+  install:
+    desc: Install CLI tools
+    cmds:
+      - for: { var: GO_CLI_TOOLS }
+        cmd: go install "{{.ITEM}}@latest"
+        # yaml-language-server-disable
+        if: "! command -v {{.KEY}} > /dev/null 2>&1"
+    silent: true
+
+  go:
+    desc: Generate Go code according to API protobuf
+    deps:
+      - install
+    cmds:
+      - protoc {{.GO_API_GENERATION_ARGS | join " "}} {{.API_PROTO_FILES}}
+    silent: true

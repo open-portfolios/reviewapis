@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.review.v1;
 
-option go_package          = "github.com/open-portfolios/review/api/review/v1;v1";
+option go_package          = "github.com/open-portfolios/reviewapis/gen/go/review/v1;v1";
 option java_multiple_files = true;
 option java_package        = "api.review.v1";
 
